@@ -709,3 +709,201 @@ chrome.storage.local.get('cssVariables', function(data) {
 
   
 });
+
+
+function addblockbutton(){
+  const newButton = document.createElement('button');
+  newButton.textContent = 'Block' + window.location.pathname.split('@')[1];
+  // make settings cog in the top right
+  newButton.style.position = 'absolute';
+  newButton.style.top = '70px';
+  newButton.style.right = '10px';
+  newButton.style.zIndex = '1000';
+  // make it visible
+  newButton.style.backgroundColor = 'white';
+  newButton.style.color = 'black';
+  newButton.style.border = '1px solid black';
+  // make it look like a button
+  newButton.style.padding = '10px';
+  newButton.style.borderRadius = '5px';
+  // add it to the page
+  document.body.appendChild(newButton);
+  
+  newButton.addEventListener('click', blockUser);
+}
+
+function blockUser() {
+  // get the user id from the url
+  const userId = window.location.pathname.split('@')[1];
+  // get the current blocked users
+  console.log(userId);
+  chrome.storage.local.get('blockedUsers', function(data) {
+    if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError);
+      return;
+    }
+  
+    const blockedUsers = data.blockedUsers || [];
+    // add the new user to the list
+    blockedUsers.push(userId);
+    // save the new list of blocked users
+    chrome.storage.local.set({ blockedUsers: blockedUsers }, function() {
+      // reload the page to apply the changes
+      location.reload();
+    });
+  });
+}
+
+
+  if (/\/@/.test(window.location.pathname)) {
+    // check if the user is blocked
+    chrome.storage.local.get('blockedUsers', function(data) {
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError);
+        return;
+      }
+    
+      const blockedUsers = data.blockedUsers || [];
+      // get the user id from the url
+      const userId = window.location.pathname.split('@')[1];
+      // if the user is blocked then don't add the button
+      if (!blockedUsers.includes(userId)) {
+        addblockbutton();
+      } else {
+        //hides page
+        document.body.innerHTML = '';
+       // tell the user they blocked them
+        const blockedMessage = document.createElement('p');
+        blockedMessage.textContent = 'You have blocked this user';
+        blockedMessage.style.position = 'absolute';
+        blockedMessage.style.top = '50%';
+        blockedMessage.style.left = '50%';
+        blockedMessage.style.transform = 'translate(-50%, -50%)';
+        blockedMessage.style.color = 'red';
+        blockedMessage.style.fontSize = '24px';
+        blockedMessage.style.fontWeight = 'bold';
+        document.body.appendChild(blockedMessage);
+        // add home button and unblock button undertext
+        const homeButton = document.createElement('button');
+        homeButton.textContent = 'Home';
+        homeButton.style.position = 'absolute';
+        homeButton.style.top = '60%';
+        homeButton.style.left = '50%';
+        homeButton.style.transform = 'translate(-50%, -50%)';
+        homeButton.style.backgroundColor = 'white';
+        homeButton.style.color = 'black';
+        homeButton.style.border = '1px solid black';
+        homeButton.style.padding = '10px';
+        homeButton.style.borderRadius = '5px';
+        document.body.appendChild(homeButton);
+        homeButton.addEventListener('click', () => {
+          window.location.href = '/';
+        });
+        const unblockButton = document.createElement('button');
+        unblockButton.textContent = 'Unblock';
+        unblockButton.style.position = 'absolute';
+        unblockButton.style.top = '70%';
+        unblockButton.style.left = '50%';
+        unblockButton.style.transform = 'translate(-50%, -50%)';
+        unblockButton.style.backgroundColor = 'white';
+        unblockButton.style.color = 'black';
+        unblockButton.style.border = '1px solid black';
+        unblockButton.style.padding = '10px';
+        unblockButton.style.borderRadius = '5px';
+        document.body.appendChild(unblockButton);
+        unblockButton.addEventListener('click', () => {
+          // remove the user from the blocked list
+          const newBlockedUsers = blockedUsers.filter(user => user !== userId);
+          chrome.storage.local.set({ blockedUsers: newBlockedUsers }, function() {
+            // reload the page to apply the changes
+            location.reload();
+          });
+        });
+        
+      }
+    });
+  }
+
+// Callback function to execute when mutations are observed
+const mutationCallback = (mutationList, observer) => {
+  chrome.storage.local.get('blockedUsers', function(data) {
+    if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError);
+      return;
+    }
+
+    const blockedUsers = data.blockedUsers || [];
+
+    mutationList.forEach((mutation) => {
+      if (mutation.type === 'childList') {
+        // Check added nodes
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'A') {
+            const anchor = node;
+            processAnchor(anchor, blockedUsers);
+          }
+        });
+
+        // Check for changes in existing nodes
+        mutation.removedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'A') {
+            const anchor = node;
+            processAnchor(anchor, blockedUsers);
+          }
+        });
+      }
+    });
+  });
+};
+
+// Function to process individual anchor tags
+const processAnchor = (anchor, blockedUsers) => {
+  const href = anchor.href;
+  let username = null;
+
+  if (href.includes('@')) {
+    username = href.split('@')[1].split('/')[0];
+  }
+  console.log(`Processing anchor tag for user: ${username}`);
+  if (username && blockedUsers.includes(username)) {
+    const parent = anchor.parentElement;
+    const grandparent = parent.parentElement;
+    if (grandparent) {
+      grandparent.remove();
+      grandparent.style.display = 'none';
+      // loop through all the children and hide them
+      grandparent.childNodes.forEach((child) => {
+        // remove the child from the page
+        child.remove();
+
+      });
+      console.log(grandparent);
+      console.log(`Removed grandparent element for blocked user: ${username}`);
+    }
+  }
+};
+
+// Create an observer instance linked to the callback function
+const observer = new MutationObserver(mutationCallback);
+
+// Options for the observer (which mutations to observe)
+const config = { childList: true, subtree: true };
+
+// Start observing the document body for configured mutations
+observer.observe(document.body, config);
+
+// Function to handle initial scan of existing nodes
+const initialScan = () => {
+  chrome.storage.local.get('blockedUsers', function(data) {
+    if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError);
+      return;
+    }
+    console.log(data);
+    const blockedUsers = data.blockedUsers || [];
+    document.querySelectorAll('a').forEach((anchor) => processAnchor(anchor, blockedUsers));
+  });
+};
+
+// Perform an initial scan of the document
+initialScan();

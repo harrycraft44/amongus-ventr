@@ -19,6 +19,7 @@
         {
           "matches": ["https://lyntr.com/*"],
           "js": ["content.js"]
+          
         }
       ],
       "action": {
