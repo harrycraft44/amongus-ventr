@@ -7,7 +7,7 @@
     },
     "web_accessible_resources": [
       {
-        "resources": ["images/default.png"],
+        "resources": ["images/default.png","images/discord.png"],
         "matches": ["<all_urls>"]
       }],
     "description": "vencord but for lyntr.",

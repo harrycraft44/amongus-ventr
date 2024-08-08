@@ -22,6 +22,28 @@ const defaultSettings = {
   "--lynt-focus": "44 24% 91%"
 };
 
+const discordSettings = {
+  "background": "15 10% 10%",  // Dark background
+  "foreground": "0 0% 100%",   // White text
+  "muted": "0 0% 20%",         // Darker gray for muted text
+  "muted-foreground": "0 0% 80%", // Light gray for muted text foreground
+  "popover": "22 16% 28%",     // Dark popover
+  "popover-foreground": "0 0% 100%", // White text on popovers
+  "card": "20 10% 20%",        // Darker card background
+  "card-foreground": "0 0% 100%", // White text on cards
+  "border": "30 10% 20%",      // Slightly lighter border
+  "input": "0 0% 30%",         // Dark input background
+  "primary": "220 80% 50%",    // Primary blue color
+  "primary-foreground": "0 0% 100%", // White text on primary elements
+  "secondary": "220 15% 30%",  // Secondary dark blue
+  "secondary-foreground": "0 0% 100%", // White text on secondary elements
+  "accent": "250 70% 60%",     // Accent purple
+  "accent-foreground": "0 0% 100%", // White text on accent elements
+  "destructive": "0 80% 60%",  // Red for destructive actions
+  "destructive-foreground": "0 0% 100%", // White text on destructive elements
+  "ring": "0 0% 100%",         // White ring color
+  "lynt-focus": "222 8% 20%"  // Focus color, a lighter blue
+};
 
 
 
@@ -39,6 +61,7 @@ var dialogHTML = `
 
     <!-- Tab content -->
     <div id="templates" class="tab-content active">
+
       <div class="customstylepreset-container">
         <button id="defaultSETTINGSclick" class="customstylepreset-button">
           <img id="defaultSETTINGS" alt="Icon" class="customstylepreset-icon">
@@ -48,6 +71,18 @@ var dialogHTML = `
           </div>
         </button>
       </div>
+
+     <div class="customstylepreset-container">
+        <button id="discordclick" class="customstylepreset-button">
+          <img id="discordImage" alt="Icon" class="customstylepreset-icon">
+          <div class="customstylepreset-text">
+            <h2>discord inspired Look</h2>
+            <p>discordo.</p>
+          </div>
+        </button>
+      </div>
+
+
     </div>
 
     <div id="advanced" class="tab-content">
@@ -458,36 +493,48 @@ document.getElementById('TabAdvanced').addEventListener('click', () => showTab('
 
 const imageUrl = chrome.runtime.getURL('images/default.png');
 const defaultSettingsElement = document.getElementById('defaultSETTINGS');
-console.log(imageUrl);
+const imageUrldiscord = chrome.runtime.getURL('images/discord.png');
+const discordsettingsElement = document.getElementById('discordImage');
+
 if (defaultSettingsElement) {
     defaultSettingsElement.src = imageUrl;
-} else {
-    console.log("defaultSettingsElement not found");
 }
 
+if (discordsettingsElement) {
+    discordsettingsElement.src = imageUrldiscord;
+} 
 
-function loadSettings(jsonobject) {
-  const cssVariables = jsonobject;
+function loadSettings(cssVariables) {
+  if (!cssVariables || typeof cssVariables !== 'object') {
+    console.error('Invalid input: cssVariables should be a JSON object.');
+    return;
+  }
+
   const root = document.documentElement;
+
+  // Apply CSS variables to the document
   Object.keys(cssVariables).forEach(key => {
-    console.log(`Setting CSS variable --${key} to ${cssVariables[key]}`);
     root.style.setProperty(`--${key}`, cssVariables[key], 'important');
   });
-  console.log('Applied CSS variables to the document');
-  chrome.storage.local.set({ cssVariables: cssVariables }, function() {
-    console.log('CSS variables saved');
-    location.reload();
 
-  }); 
-  
+
+  // Optionally save to local storage
+  chrome.storage.local.set({ cssVariables: cssVariables }, function() {
+    // Optionally reload or update UI
+    // location.reload(); // Uncomment if you need to reload the page
+  });
 }
+
 
 document.getElementById('defaultSETTINGSclick').addEventListener('click', () => {
   loadSettings(defaultSettings);
 });
 
+document.getElementById('discordclick').addEventListener('click', () => {
+  loadSettings(discordSettings);
+});
+
 function openDialog() {
-  console.log('Opening dialog');
   document.getElementById('extension-dialog').style.display = 'Block';
 }
 
@@ -537,9 +584,6 @@ function saveDialog() {
 
   chrome.storage.local.set({ cssVariables: cssVariables }, function() {
     // print all the css variables
-    console.log(cssVariables);
-
-    console.log('CSS variables saved');
     closeDialog();
     location.reload();
   });
@@ -641,7 +685,6 @@ chrome.storage.local.get('cssVariables', function(data) {
   const cssVariables = data.cssVariables || {};
 
   if (Object.keys(cssVariables).length === 0) {
-    console.log('No CSS variables found in storage.');
   } else {
 
     // Apply CSS variables to the document
@@ -660,10 +703,8 @@ chrome.storage.local.get('cssVariables', function(data) {
     const root = document.documentElement;
     
     Object.keys(cssVariables).forEach(key => {
-      console.log(`Setting CSS variable --${key} to ${cssVariables[key]}`);
       root.style.setProperty(`--${key}`, cssVariables[key], 'important');
     });
-    console.log('Applied CSS variables to the document');
   }
 
   
