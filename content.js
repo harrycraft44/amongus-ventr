@@ -856,13 +856,8 @@ const mutationCallback = (mutationList, observer) => {
   });
 };
 
-const processAnchor = (anchor, blockedUsers) => {
-  const href = anchor.href;
-  let username = null;
 
-  if (href.includes('@')) {
-    username = href.split('@')[1].split('/')[0];
-  }
+function processtweet(anchor) {
   const tweetContent = anchor.parentElement;
   const mainanchor = tweetContent.parentElement;
   // get all spans that match and for each span check if it contains the username
@@ -880,7 +875,7 @@ const processAnchor = (anchor, blockedUsers) => {
   const usernamet = tweetUser ? tweetUser[1] : null;
   console.log(usernamet);
 
-  if (usernamet) {
+  if (usernamet && tweetText.includes("@")) {
     const link = `<a href="https://lyntr.com/@${usernamet}">@${usernamet}</a>`;
     span.innerHTML = tweetText.replace(tweetUser[0], link);
 
@@ -889,19 +884,14 @@ const processAnchor = (anchor, blockedUsers) => {
       const link = `<a href="https://lyntr.com/@${usernamet}">@${usernamet}</a>`;
       span.innerHTML = tweetText.replace(tweetUser[0], link);
     
-      // Possible to set up a listener for the new link hover
       const anchor = span.querySelector('a');
       if (anchor) {
-        // Get information about the user when hovering over the link
-        // https://lyntr.com/api/profile?handle=USERNAME
-        // Responds with example {"id":"9532815203335168","handle":"intel","created_at":"2024-08-08 18:49:44.783916","username":"Intel","iq":-26,"verified":false,"followers":11,"following":1,"bio":"Intel's mission is to provide powerful assets for data centers and home users."}
-        
+
         anchor.addEventListener('mouseover', (event) => {
 
         fetch(`https://lyntr.com/api/profile?handle=${usernamet}`)
       .then(response => response.json())
       .then(data => {
-        // Create the popup element
         const popup = document.createElement('div');
         popup.innerHTML = `
           <div style="display: flex; align-items: center;">
@@ -914,8 +904,7 @@ const processAnchor = (anchor, blockedUsers) => {
             </div>
           </div>
         `;
-        // 
-        // Style the popup using css variables. the css variables are hsl values
+        
         popup.style.backgroundColor = 'hsl(var(--popover))';
         popup.style.color = 'hsl(var(--popover-foreground))';
         popup.style.border = '1px solid var(--border)';
@@ -930,18 +919,34 @@ const processAnchor = (anchor, blockedUsers) => {
         
         document.body.appendChild(popup);
 
-        // Position the popup under the mouse pointer
         const { clientX: mouseX, clientY: mouseY } = event;
         popup.style.left = `${mouseX + 10}px`;
         popup.style.top = `${mouseY + 10}px`;
-
-        // Remove the popup when mouse leaves the anchor
+        var movedpixel = 0;
         anchor.addEventListener('mouseout', () => {
+          console.log(`Stopped hovering over ${usernamet}`);
+          if (document.body.contains(popup)) {
+            document.body.removeChild(popup);
+            
+          }
+        }, { once: true });
+        anchor.addEventListener('mouseleave', () => {
           console.log(`Stopped hovering over ${usernamet}`);
           if (document.body.contains(popup)) {
             document.body.removeChild(popup);
           }
         }, { once: true });
+        // add a listener to mouse movement to remove the popup if the mouse moves away
+        document.body.addEventListener('mousemove', (event) => {
+          // give some leeway for the mouse to move away from the popup
+          if (movedpixel > 10) {
+            if (document.body.contains(popup)) {
+              document.body.removeChild(popup);
+            }
+          } else {
+            movedpixel++;
+          }
+      })
       })
       .catch(error => console.error('Error fetching profile:', error));
   });
@@ -949,7 +954,16 @@ const processAnchor = (anchor, blockedUsers) => {
     }
   }
   });
+}
 
+const processAnchor = (anchor, blockedUsers) => {
+  const href = anchor.href;
+  let username = null;
+
+  if (href.includes('@')) {
+    username = href.split('@')[1].split('/')[0];
+  }
+  processtweet(anchor);
 
 
 
