@@ -856,7 +856,6 @@ const mutationCallback = (mutationList, observer) => {
   });
 };
 
-// Function to process individual anchor tags
 const processAnchor = (anchor, blockedUsers) => {
   const href = anchor.href;
   let username = null;
@@ -864,6 +863,98 @@ const processAnchor = (anchor, blockedUsers) => {
   if (href.includes('@')) {
     username = href.split('@')[1].split('/')[0];
   }
+  const tweetContent = anchor.parentElement;
+  const mainanchor = tweetContent.parentElement;
+  // get all spans that match and for each span check if it contains the username
+  const allspans = tweetContent.querySelectorAll('span');
+  allspans.forEach((span) => {
+    
+  if (!span) {
+    return;
+  }
+
+  const tweetText = span.textContent;
+  console.log(tweetText);
+
+  const tweetUser = tweetText.match(/@(\w+)/);
+  const usernamet = tweetUser ? tweetUser[1] : null;
+  console.log(usernamet);
+
+  if (usernamet) {
+    const link = `<a href="https://lyntr.com/@${usernamet}">@${usernamet}</a>`;
+    span.innerHTML = tweetText.replace(tweetUser[0], link);
+
+    //possable to set up a listener for the new link hover
+    if (usernamet) {
+      const link = `<a href="https://lyntr.com/@${usernamet}">@${usernamet}</a>`;
+      span.innerHTML = tweetText.replace(tweetUser[0], link);
+    
+      // Possible to set up a listener for the new link hover
+      const anchor = span.querySelector('a');
+      if (anchor) {
+        // Get information about the user when hovering over the link
+        // https://lyntr.com/api/profile?handle=USERNAME
+        // Responds with example {"id":"9532815203335168","handle":"intel","created_at":"2024-08-08 18:49:44.783916","username":"Intel","iq":-26,"verified":false,"followers":11,"following":1,"bio":"Intel's mission is to provide powerful assets for data centers and home users."}
+        
+        anchor.addEventListener('mouseover', (event) => {
+
+        fetch(`https://lyntr.com/api/profile?handle=${usernamet}`)
+      .then(response => response.json())
+      .then(data => {
+        // Create the popup element
+        const popup = document.createElement('div');
+        popup.innerHTML = `
+          <div style="display: flex; align-items: center;">
+            <img src="https://cdn.lyntr.com/lyntr/${data.id}_small.webp?v=" alt="Profile Picture" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
+            <div>
+              <p style="font-weight: bold; margin: 0;">Profile for ${data.username}</p>
+              <p style="margin: 5px 0;">Bio: ${data.bio}</p>
+              <p style="margin: 5px 0;">Followers: ${data.followers}</p>
+              <p style="margin: 5px 0;">Following: ${data.following}</p>
+            </div>
+          </div>
+        `;
+        // 
+        // Style the popup using css variables. the css variables are hsl values
+        popup.style.backgroundColor = 'hsl(var(--popover))';
+        popup.style.color = 'hsl(var(--popover-foreground))';
+        popup.style.border = '1px solid var(--border)';
+        popup.style.borderRadius = '8px';
+        popup.style.padding = '10px';
+        popup.style.position = 'fixed';
+        popup.style.zIndex = '9999';
+        popup.style.maxWidth = '300px';
+        popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
+
+
+        
+        document.body.appendChild(popup);
+
+        // Position the popup under the mouse pointer
+        const { clientX: mouseX, clientY: mouseY } = event;
+        popup.style.left = `${mouseX + 10}px`;
+        popup.style.top = `${mouseY + 10}px`;
+
+        // Remove the popup when mouse leaves the anchor
+        anchor.addEventListener('mouseout', () => {
+          console.log(`Stopped hovering over ${usernamet}`);
+          if (document.body.contains(popup)) {
+            document.body.removeChild(popup);
+          }
+        }, { once: true });
+      })
+      .catch(error => console.error('Error fetching profile:', error));
+  });
+      }
+    }
+  }
+  });
+
+
+
+
+
+
   console.log(`Processing anchor tag for user: ${username}`);
   if (username && blockedUsers.includes(username)) {
     const parent = anchor.parentElement;
@@ -883,6 +974,9 @@ const processAnchor = (anchor, blockedUsers) => {
   }
 };
 
+
+
+
 // Create an observer instance linked to the callback function
 const observer = new MutationObserver(mutationCallback);
 
@@ -899,6 +993,7 @@ const initialScan = () => {
       console.error(chrome.runtime.lastError);
       return;
     }
+    
     console.log(data);
     const blockedUsers = data.blockedUsers || [];
     document.querySelectorAll('a').forEach((anchor) => processAnchor(anchor, blockedUsers));
