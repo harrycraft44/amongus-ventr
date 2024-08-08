@@ -2,6 +2,14 @@
     "manifest_version": 3,
     "name": "amongus ventr",
     "version": "1.0",
+    "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self';"
+    },
+    "web_accessible_resources": [
+      {
+        "resources": ["images/default.png"],
+        "matches": ["<all_urls>"]
+      }],
     "description": "vencord but for lyntr.",
     "permissions": [
       "activeTab",

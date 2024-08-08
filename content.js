@@ -22,32 +22,41 @@ const defaultSettings = {
   "--lynt-focus": "44 24% 91%"
 };
 
+
+
+
 var dialogHTML = `
   <div id="extension-dialog" class="extension-dialog">
-    <div class="extension-dialog-content">
-      <span id="extension-dialog-close" class="extension-dialog-close">&times;</span>
-      <h2>Edit Extension Variables</h2>
-      <!-- default styles buttons like default-->
-      <div class="customstylepreset-container">
-        <button class="customstylepreset-button">
-            <img src="icon.png" alt="Icon" class="customstylepreset-icon">
-            <div class="customstylepreset-text">
-                <h2>Main Text</h2>
-                <p>Short description goes here.</p>
-            </div>
-        </button>
+  <div class="extension-dialog-content">
+    <span id="extension-dialog-close" class="extension-dialog-close">&times;</span>
+    <h2>Settings</h2>
+
+    <!-- Tab navigation -->
+    <div class="tabs">
+      <button class="tab-button active" id="TabTemplates">Templates</button>
+      <button class="tab-button" id="TabAdvanced">Advanced</button>
     </div>
-      <button class="button" id="extension-dialog-default">set settings to defult</button>
-      <br>
-      <button class="button" id="extension-dialog-advanced-button">hide advanced settings</button>
-      <div id="advanced">
-      <h2>Edit Extension Variables</h2>
+
+    <!-- Tab content -->
+    <div id="templates" class="tab-content active">
+      <div class="customstylepreset-container">
+        <button id="defaultSETTINGSclick" class="customstylepreset-button">
+          <img id="defaultSETTINGS" alt="Icon" class="customstylepreset-icon">
+          <div class="customstylepreset-text">
+            <h2>Default Look</h2>
+            <p>The look you came to enjoy on Lyntr.</p>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div id="advanced" class="tab-content">
+      <h2>Edit CSS Variables</h2>
       <div id="extension-dialog-body">
-        <div class="input-group">
-    <label for="background">Background:</label>
-    <input type="color" id="background" value="#ffffff">
-    <input type="text" id="backgroundHex" placeholder="#ffffff">
-  </div>
+
+
+
+
   <div class="input-group">
     <label for="foreground">Foreground:</label>
     <input type="color" id="foreground" value="#000000">
@@ -244,13 +253,16 @@ var dialogHTML = `
     <input type="color" id="dark-lynt-focus" value="#333333">
     <input type="text" id="darkLyntFocusHex" placeholder="#333333">
   </div>
-      </div>
+     
+  
+
+        </div>
       <button id="extension-dialog-save" class="button">Save</button>
     </div>
-
-    </div>
   </div>
+</div>
 `;
+
 
 
 
@@ -322,7 +334,45 @@ style.innerHTML = `
   text-decoration: none;
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 10px;
+}
 
+.tab-button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: center;
+  border-radius: 4px 4px 0 0;
+  transition: background-color 0.3s ease;
+}
+
+.tab-button.active {
+  background-color: #ffffff;
+  border-bottom: 1px solid white;
+  font-weight: bold;
+}
+
+.tab-button:hover {
+  background-color: #e0e0e0;
+}
+
+/* Tab content */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Custom style preset button */
 .customstylepreset-container {
   display: flex;
   justify-content: center;
@@ -347,8 +397,8 @@ style.innerHTML = `
 }
 
 .customstylepreset-icon {
-  width: 40px;
-  height: 40px;
+  width: fit-content;
+  height: 120px;
   margin-right: 10px;
 }
 
@@ -368,24 +418,45 @@ style.innerHTML = `
   color: #666;
 }
 
+
 `;
 
 document.head.appendChild(style);
+function showTab(tabId) {
+  const tabs = document.querySelectorAll('.tab-content');
+  tabs.forEach(tab => tab.classList.remove('active'));
 
-// Function to toggle the advanced settings
-function toggleAdvanced() {
-  const advanced = document.getElementById('advanced');
-  const advancedButton = document.getElementById('extension-dialog-advanced-button');
-  if (advanced.style.display === 'none') {
-    advanced.style.display = 'block';
-    advancedButton.innerText = 'hide advanced settings';
+  const buttons = document.querySelectorAll('.tab-button');
+  buttons.forEach(button => button.classList.remove('active'));
+
+  document.getElementById(tabId).classList.add('active');
+  if (tabId === 'templates') {
+    document.getElementById('TabTemplates').classList.add('active');
+    document.getElementById('TabAdvanced').classList.remove('active');
   } else {
-    advanced.style.display = 'none';
-    advancedButton.innerText = 'show advanced settings';
+    document.getElementById('TabAdvanced').classList.add('active');
+    document.getElementById('TabTemplates').classList.remove('active');
   }
 }
-// Add event listener to the advanced button
-document.getElementById('extension-dialog-advanced-button').addEventListener('click', toggleAdvanced);
+
+// Initialize by showing the first tab
+document.addEventListener('DOMContentLoaded', () => {
+  showTab('templates');
+});
+// Add event listeners to the tab buttons
+document.getElementById('TabTemplates').addEventListener('click', () => showTab('templates'));
+document.getElementById('TabAdvanced').addEventListener('click', () => showTab('advanced'));
+
+
+const imageUrl = chrome.runtime.getURL('images/default.png');
+const defaultSettingsElement = document.getElementById('defaultSETTINGS');
+console.log(imageUrl);
+if (defaultSettingsElement) {
+    defaultSettingsElement.src = imageUrl;
+} else {
+    console.log("defaultSettingsElement not found");
+}
+
 
 function loadSettings(jsonobject) {
   const cssVariables = jsonobject;
@@ -397,11 +468,13 @@ function loadSettings(jsonobject) {
   console.log('Applied CSS variables to the document');
   chrome.storage.local.set({ cssVariables: cssVariables }, function() {
     console.log('CSS variables saved');
+    location.reload();
+
   }); 
   
 }
 
-document.getElementById('extension-dialog-default').addEventListener('click', () => {
+document.getElementById('defaultSETTINGSclick').addEventListener('click', () => {
   loadSettings(defaultSettings);
 });
 
@@ -460,6 +533,7 @@ function saveDialog() {
 
     console.log('CSS variables saved');
     closeDialog();
+    location.reload();
   });
 }
 
@@ -523,7 +597,7 @@ document.getElementById('extension-dialog-save').addEventListener('click', saveD
 // Function to handle adding a new button to div id="snnq7p4bPO"
 function addButton() {
   const newButton = document.createElement('button');
-  newButton.textContent = 'Edit Extension Variables';
+  newButton.textContent = 'Settings';
   // make settings cog in the top right
   newButton.style.position = 'absolute';
   newButton.style.top = '10px';
