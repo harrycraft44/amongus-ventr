@@ -55,8 +55,16 @@ var dialogHTML = `
       <div id="extension-dialog-body">
 
 
+<!-- -->
 
 
+
+  <div class="input-group">
+
+<label for="background">Background:</label>
+<input type="color" id="background" value="#ffffff">
+<input type="text" id="backgroundHex" placeholder="#ffffff">
+</div>
   <div class="input-group">
     <label for="foreground">Foreground:</label>
     <input type="color" id="foreground" value="#000000">
