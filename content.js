@@ -1,5 +1,5 @@
 // Inject the dialog HTML into the DOM
-const defultSettings = {
+const defaultSettings = {
   "--background": "53 24% 93%",
   "--foreground": "20 14.3% 4.1%",
   "--muted": "60 4.8% 95.9%",
@@ -19,7 +19,6 @@ const defultSettings = {
   "--destructive": "0 72.2% 50.6%",
   "--destructive-foreground": "60 9.1% 97.8%",
   "--ring": "20 14.3% 4.1%",
-  "--radius": "0.5rem",
   "--lynt-focus": "44 24% 91%"
 };
 
@@ -29,8 +28,17 @@ var dialogHTML = `
       <span id="extension-dialog-close" class="extension-dialog-close">&times;</span>
       <h2>Edit Extension Variables</h2>
       <!-- default styles buttons like default-->
+      <div class="customstylepreset-container">
+        <button class="customstylepreset-button">
+            <img src="icon.png" alt="Icon" class="customstylepreset-icon">
+            <div class="customstylepreset-text">
+                <h2>Main Text</h2>
+                <p>Short description goes here.</p>
+            </div>
+        </button>
+    </div>
       <button class="button" id="extension-dialog-default">set settings to defult</button>
-
+      <br>
       <button class="button" id="extension-dialog-advanced-button">hide advanced settings</button>
       <div id="advanced">
       <h2>Edit Extension Variables</h2>
@@ -130,10 +138,7 @@ var dialogHTML = `
     <input type="color" id="ring" value="#007bff">
     <input type="text" id="ringHex" placeholder="#007bff">
   </div>
-  <div class="input-group">
-    <label for="radius">Radius:</label>
-    <input type="text" id="radius" placeholder="0.5rem">
-  </div>
+
   <div class="input-group">
     <label for="lyntFocus">Lynt Focus:</label>
     <input type="color" id="lynt-focus" value="#007bff">
@@ -240,7 +245,7 @@ var dialogHTML = `
     <input type="text" id="darkLyntFocusHex" placeholder="#333333">
   </div>
       </div>
-      <button id="extension-dialog-save">Save</button>
+      <button id="extension-dialog-save" class="button">Save</button>
     </div>
 
     </div>
@@ -254,52 +259,115 @@ document.body.insertAdjacentHTML('beforeend', dialogHTML);
 // Add CSS to style the dialog
 const style = document.createElement('style');
 style.innerHTML = `
-  .extension-dialog {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    color: black;
-        max-height: 80vh;
-  
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(10, 10, 10, 0.5);
-  }
-  .button {
-    background-color: white;
-    color: black;
-    border: 1px solid black;
-    padding: 10px;
-    border-radius: 5px;
-  }
+/* Main dialog container */
+.extension-dialog {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  color: #333;
+  max-height: 80vh;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
 
-  .extension-dialog-content {
-    background-color: white;
-    margin: 0 auto;
-    padding: 20px;
-    max-height: 80vh;
-    color: black;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 600px;
-    overflow-y: auto;
+/* Button styling */
+.button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  margin-top: 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
 
-  }
+.button:hover,
+.button:focus {
+  background-color: #0056b3;
+  outline: none;
+}
 
-.extension-dialog-clclose
-    color: #aaa
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-  }
+/* Content area inside the dialog */
+.extension-dialog-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  color: #333;
+  border: 1px solid #ddd;
+  max-height: 60vh;
+  overflow-y: auto;
+}
 
-  .extension-dialog-close:hover,
-  .extension-dialog-close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-  }
+/* Close button */
+.extension-dialog-close {
+  color: #666;
+  float: right;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.extension-dialog-close:hover,
+.extension-dialog-close:focus {
+  color: #000;
+  text-decoration: none;
+}
+
+
+.customstylepreset-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.customstylepreset-button {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border: none;
+  background-color: #ffffff;
+  cursor: pointer;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.customstylepreset-button:hover {
+  background-color: #f0f0f0;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.customstylepreset-icon {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.customstylepreset-text {
+  text-align: left;
+}
+
+.customstylepreset-text h2 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.customstylepreset-text p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #666;
+}
+
 `;
 
 document.head.appendChild(style);
@@ -307,11 +375,13 @@ document.head.appendChild(style);
 // Function to toggle the advanced settings
 function toggleAdvanced() {
   const advanced = document.getElementById('advanced');
+  const advancedButton = document.getElementById('extension-dialog-advanced-button');
   if (advanced.style.display === 'none') {
     advanced.style.display = 'block';
-    
+    advancedButton.innerText = 'hide advanced settings';
   } else {
     advanced.style.display = 'none';
+    advancedButton.innerText = 'show advanced settings';
   }
 }
 // Add event listener to the advanced button
@@ -332,7 +402,7 @@ function loadSettings(jsonobject) {
 }
 
 document.getElementById('extension-dialog-default').addEventListener('click', () => {
-  loadSettings('default-settings.json');
+  loadSettings(defaultSettings);
 });
 
 function openDialog() {
