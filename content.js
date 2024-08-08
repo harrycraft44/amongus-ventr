@@ -309,10 +309,9 @@ function toggleAdvanced() {
   const advanced = document.getElementById('advanced');
   if (advanced.style.display === 'none') {
     advanced.style.display = 'block';
-    advanced.innerHTML = 'hide advanced settings';
+    
   } else {
     advanced.style.display = 'none';
-    advanced.innerHTML = 'show advanced settings';
   }
 }
 // Add event listener to the advanced button
