@@ -1,3 +1,5 @@
+
+
 // Inject the dialog HTML into the DOM
 const defaultSettings = {
   "--background": "53 24% 93%",
@@ -21,6 +23,8 @@ const defaultSettings = {
   "--ring": "20 14.3% 4.1%",
   "--lynt-focus": "44 24% 91%"
 };
+
+
 
 const discordSettings = {
   "background": "15 10% 10%",  // Dark background
@@ -582,11 +586,19 @@ function saveDialog() {
     cssVariables[key] = hslValue;
   });
 
-  chrome.storage.local.set({ cssVariables: cssVariables }, function() {
-    // print all the css variables
-    closeDialog();
-    location.reload();
-  });
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.set({ cssVariables: cssVariables }, function() {
+      if (chrome.runtime.lastError) {
+        console.error('Error saving CSS variables:', chrome.runtime.lastError);
+      } else {
+        console.log('CSS variables saved successfully:', cssVariables);
+        closeDialog();
+        location.reload();
+      }
+    });
+  } else {
+    console.error('chrome.storage.local is not available.');
+  }
 }
 
 // Function to convert hex color to HSL
@@ -674,41 +686,40 @@ addButton();
 
 
 
-
 // Retrieve CSS variables from storage and apply them to the document
-chrome.storage.local.get('cssVariables', function(data) {
-  if (chrome.runtime.lastError) {
-    console.error(chrome.runtime.lastError);
-    return;
-  }
+if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+  chrome.storage.local.get('cssVariables', function(data) {
+    if (chrome.runtime.lastError) {
+      console.error('Error retrieving CSS variables:', chrome.runtime.lastError);
+      return;
+    }
 
-  const cssVariables = data.cssVariables || {};
+    const cssVariables = data.cssVariables || {};
 
-  if (Object.keys(cssVariables).length === 0) {
-  } else {
+    if (Object.keys(cssVariables).length === 0) {
+      console.log('No CSS variables found.');
+    } else {
+      // Apply CSS variables to the document
+      const inputs = document.querySelectorAll('.input-group input[type="color"]');
+      inputs.forEach(input => {
+        const key = input.id;
+        const value = cssVariables[key];
+        if (value) {
+          const hslValues = value.split(' ');
+          const hexValue = hslToHex(hslValues[0], hslValues[1], hslValues[2]);
+          input.value = hexValue;
+        }
+      });
 
-    // Apply CSS variables to the document
-    // apply to dialog box defults
-    const inputs = document.querySelectorAll('.input-group input[type="color"]');
-    inputs.forEach(input => {
-      const key = input.id;
-      const value = cssVariables[key];
-      if (value) {
-      const hslValues = value.split(' ');
-      const hexValue = hslToHex(hslValues[0], hslValues[1], hslValues[2]);
-      input.value = hexValue;
-      }
-    });
-    
-    const root = document.documentElement;
-    
-    Object.keys(cssVariables).forEach(key => {
-      root.style.setProperty(`--${key}`, cssVariables[key], 'important');
-    });
-  }
-
-  
-});
+      const root = document.documentElement;
+      Object.keys(cssVariables).forEach(key => {
+        root.style.setProperty(`--${key}`, cssVariables[key], 'important');
+      });
+    }
+  });
+} else {
+  console.error('chrome.storage.local is not available.');
+}
 
 
 function addblockbutton(){
@@ -855,8 +866,6 @@ const mutationCallback = (mutationList, observer) => {
     });
   });
 };
-
-
 function processtweet(anchor) {
   const tweetContent = anchor.parentElement;
   const mainanchor = tweetContent.parentElement;
