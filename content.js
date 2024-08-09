@@ -23,6 +23,8 @@ const defaultSettings = {
   "--ring": "20 14.3% 4.1%",
   "--lynt-focus": "44 24% 91%"
 };
+// get domain name
+ const domain = window.location.hostname;
 
 
 
@@ -885,12 +887,12 @@ function processtweet(anchor) {
   console.log(usernamet);
 
   if (usernamet && tweetText.includes("@")) {
-    const link = `<a href="https://lyntr.com/@${usernamet}">@${usernamet}</a>`;
+    const link = `<a href="https://${domain}/@${usernamet}">@${usernamet}</a>`;
     span.innerHTML = tweetText.replace(tweetUser[0], link);
 
     //possable to set up a listener for the new link hover
     if (usernamet) {
-      const link = `<a href="https://lyntr.com/@${usernamet}">@${usernamet}</a>`;
+      const link = `<a href="https://${domain}/@${usernamet}">@${usernamet}</a>`;
       span.innerHTML = tweetText.replace(tweetUser[0], link);
     
       const anchor = span.querySelector('a');
@@ -898,13 +900,13 @@ function processtweet(anchor) {
 
         anchor.addEventListener('mouseover', (event) => {
 
-        fetch(`https://lyntr.com/api/profile?handle=${usernamet}`)
+        fetch(`https://${domain}/api/profile?handle=${usernamet}`)
       .then(response => response.json())
       .then(data => {
         const popup = document.createElement('div');
         popup.innerHTML = `
           <div style="display: flex; align-items: center;">
-            <img src="https://cdn.lyntr.com/lyntr/${data.id}_small.webp?v=" alt="Profile Picture" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
+            <img src="https://${domain.replace("lyntr","cdn")}/lyntr/${data.id}_small.webp?v=" alt="Profile Picture" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">
             <div>
               <p style="font-weight: bold; margin: 0;">Profile for ${data.username}</p>
               <p style="margin: 5px 0;">Bio: ${data.bio}</p>
